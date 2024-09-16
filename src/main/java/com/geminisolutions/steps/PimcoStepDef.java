@@ -26,13 +26,18 @@ public class PimcoStepDef {
         pimcoImpl.fetchAllDataPointsAndValues();
     }
 
-    @And("User stores the data in an Excel file")
-    public void userStoresTheDataInAnExcelFile() {
-        pimcoImpl.storeDataPointsAndValuesInExcel();
+    @And("User stores the data in an Excel file named {string}")
+    public void userStoresTheDataInAnExcelFile(String excelName) {
+        pimcoImpl.storeDataPointsAndValuesInExcel(excelName);
     }
 
-    @And("User validates the data")
-    public void userValidatesData() {
-        Assert.assertTrue(pimcoImpl.validateData());
+    @And("User stores the data of following day in an Excel file named as {string}")
+    public void userStoresTheDataOfFollowingDayInAnExcelFile(String excelName) {
+        pimcoImpl.storeDataPointsValuesOfFollowingDayInExcel(excelName);
+    }
+
+    @And("User validates the data in excel {string}")
+    public void userValidatesData(String excelName) {
+        pimcoImpl.validateData(excelName);
     }
 }

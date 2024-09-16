@@ -13,11 +13,15 @@ public class PimcoLocators {
     public static final String FUND_INCEPTION_DATE_LOCATOR = "//div[contains(text(), ' Inception Date ')]";
     public static final String MORNING_STAR_RATING_LOCATOR = "//div[contains(text(), 'Overall Morningstar Rating')]";
 
-    public static final String DAILY_NAV_VALUE_LOCATOR = "(//div[@class='fund-summary__value'])[1]";
-    public static final String DAILY_YTD_RETURN_VALUE_LOCATOR = "(//div[@class='fund-summary__value ng-star-inserted'])[1]/*[1]";
+    public static final String DAILY_NAV_VALUE_LOCATOR = "//div[@class='fund-summary__category' and text()='Daily Nav (USD)']/following-sibling::div[@class='fund-summary__value']";
+    public static final String DAILY_NAV_AS_OF_DATE_VALUE = "//div[text()='Daily Nav (USD)']/following-sibling::div[@class='fund-summary__value']/div[@class='fund-summary__small-text']";
+    public static final String DAILY_YTD_RETURN_VALUE_LOCATOR = "//div[@class='fund-summary__value ng-star-inserted']//app-percent-value";
+    public static final String DAILY_YTD_RETURN_AS_OF_DATE_VALUE = "//div[@class='fund-summary__value ng-star-inserted']//div[@class='fund-summary__small-text']";
     public static final String ASSET_CLASS_VALUE_LOCATOR = "//div[@class='fund-summary__value fund-summary__fund-class']";
-    public static final String TOTAL_FUND_ASSETS_VALUE_LOCATOR = "(//div[@class='fund-summary__value'])[2]";
-    public static final String FUND_INCEPTION_DATE_VALUE_LOCATOR = "(//div[@class='fund-summary__value'])[3]";
+    public static final String TOTAL_FUND_ASSETS_VALUE_LOCATOR = "//div[@class='fund-summary__value' and contains(text(), 'MM')]";
+    public static final String TOTAL_FUND_ASSETS_AS_OF_DATE_VALUE = "//div[@class='fund-summary__value' and contains(text(), 'MM')]//div";
+    public static final String FUND_INCEPTION_DATE_VALUE_LOCATOR = "//div[@class='fund-summary__category' and contains(text(), ' Inception Date ')]/following-sibling::div";
     public static final String MORNING_STAR_RATING_VALUE_LOCATOR = "//div[@class='fund-summary__value ng-star-inserted']//span[@class='visually-hidden']";
+    public static final String MORNING_STAR_RATING_AS_OF_DATE_VALUE = "//div[@class='morning-star-date fund-summary__small-text']";
 
 }

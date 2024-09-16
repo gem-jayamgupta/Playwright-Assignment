@@ -3,9 +3,11 @@ package com.geminisolutions.pages;
 import com.geminisolutions.locators.PimcoLocators;
 import com.microsoft.playwright.Page;
 import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 
@@ -19,11 +21,19 @@ public class PimcoHomePage extends BasePage {
     String morningStarRating;
 
     String dailyNavValue;
+
+    String dailyNavAsOfDateValue;
     String dailyYtdReturnValue;
+
+    String dailyYtdReturnAsOfDateValue;
     String assetClassValue;
     String totalFundAssetsValue;
+
+    String totalFundAssetsAsOfDateValue;
     String fundInceptionDateValue;
     String morningStarRatingValue;
+
+    String morningStarRatingAsOfDateValue;
 
     public PimcoHomePage(Page page) {
         super(page);
@@ -55,17 +65,26 @@ public class PimcoHomePage extends BasePage {
 
     public void fetchAllDataPointsValues() {
         dailyNavValue = page.locator(PimcoLocators.DAILY_NAV_VALUE_LOCATOR).innerText();
+        dailyNavValue = dailyNavValue.split("As")[0].trim();
+        dailyNavAsOfDateValue = page.locator(PimcoLocators.DAILY_NAV_AS_OF_DATE_VALUE).innerText();
+        dailyNavAsOfDateValue = dailyNavAsOfDateValue.replace("As of ", "").trim();
         dailyYtdReturnValue = page.locator(PimcoLocators.DAILY_YTD_RETURN_VALUE_LOCATOR).innerText();
+        dailyYtdReturnAsOfDateValue = page.locator(PimcoLocators.DAILY_YTD_RETURN_AS_OF_DATE_VALUE).innerText();
+        dailyYtdReturnAsOfDateValue = dailyYtdReturnAsOfDateValue.replace("As of ","").trim();
         assetClassValue = page.locator(PimcoLocators.ASSET_CLASS_VALUE_LOCATOR).innerText();
         totalFundAssetsValue = page.locator(PimcoLocators.TOTAL_FUND_ASSETS_VALUE_LOCATOR).innerText();
+        totalFundAssetsValue = totalFundAssetsValue.split("As")[0].trim();
+        totalFundAssetsAsOfDateValue = page.locator(PimcoLocators.TOTAL_FUND_ASSETS_AS_OF_DATE_VALUE).innerText();
+        totalFundAssetsAsOfDateValue = totalFundAssetsAsOfDateValue.replace("As of ", "").trim();
         fundInceptionDateValue = page.locator(PimcoLocators.FUND_INCEPTION_DATE_VALUE_LOCATOR).innerText();
         morningStarRatingValue = page.locator(PimcoLocators.MORNING_STAR_RATING_VALUE_LOCATOR).innerText();
-
+        morningStarRatingAsOfDateValue = page.locator(PimcoLocators.MORNING_STAR_RATING_AS_OF_DATE_VALUE).innerText();
+        morningStarRatingAsOfDateValue = morningStarRatingAsOfDateValue.replace("As of ", "").trim();
     }
 
-    public void storeDataInExcel() {
+    public void storeDataInExcel(String excelName) {
         try (HSSFWorkbook workbook = new HSSFWorkbook()) {
-            HSSFSheet sheet = workbook.createSheet("Fund Data");
+            HSSFSheet sheet = workbook.createSheet(excelName);
 
             Row header = sheet.createRow(0);
             header.createCell(0).setCellValue("Nav Bar Field Name");
@@ -73,11 +92,15 @@ public class PimcoHomePage extends BasePage {
 
             Object[][] data = {
                     {dailyNav, dailyNavValue},
+                    {"Daily Nav Dated", dailyNavAsOfDateValue},
                     {dailyYtdReturn, dailyYtdReturnValue},
+                    {"Daily YTD Return Dated", dailyYtdReturnAsOfDateValue},
                     {assetClass, assetClassValue},
                     {totalFundAssets, totalFundAssetsValue},
+                    {"Total Fund Assets Dated", totalFundAssetsAsOfDateValue},
                     {fundInceptionDate, fundInceptionDateValue},
-                    {morningStarRating, morningStarRatingValue}
+                    {morningStarRating, morningStarRatingValue},
+                    {"Morning Star Rating Dated", morningStarRatingAsOfDateValue}
             };
 
             int rowNum = 1;
@@ -88,7 +111,7 @@ public class PimcoHomePage extends BasePage {
             }
 
             String projectDir = System.getProperty("user.dir");
-            String filePath = projectDir + "/FundData.xlsx";
+            String filePath = projectDir + "/"+excelName+".xlsx";
 
             try (FileOutputStream fileOut = new FileOutputStream(filePath)) {
                 workbook.write(fileOut);
@@ -101,9 +124,98 @@ public class PimcoHomePage extends BasePage {
 
     }
 
-    public boolean validateData(){
-        return dailyNavValue != null && dailyYtdReturnValue != null && assetClassValue != null &&
-                totalFundAssetsValue != null && fundInceptionDateValue != null && morningStarRatingValue != null;
+    public void storeFollowingDayDataInExcel(String excelName){
+        try (FileInputStream fileInputStream = new FileInputStream(excelName+".xlsx");
+             HSSFWorkbook workbook = new HSSFWorkbook(fileInputStream)) {
+
+            HSSFSheet sheet = workbook.getSheet(excelName);
+
+            Row header = sheet.getRow(0);
+            if (header != null) {
+                Cell headerCell = header.createCell(2);
+                headerCell.setCellValue("Following Day Data");
+            }
+
+            Object[][] data = {
+                    {dailyNavValue},
+                    {dailyNavAsOfDateValue},
+                    {dailyYtdReturnValue},
+                    {dailyYtdReturnAsOfDateValue},
+                    {assetClassValue},
+                    {totalFundAssetsValue},
+                    {totalFundAssetsAsOfDateValue},
+                    {fundInceptionDateValue},
+                    {morningStarRatingValue},
+                    {morningStarRatingAsOfDateValue}
+            };
+
+            int rowNum = 1;
+            for (Object[] rowData : data) {
+                Row row = sheet.getRow(rowNum);
+                if (row == null) {
+                    row = sheet.createRow(rowNum);
+                }
+                row.createCell(2).setCellValue((String) rowData[0]);
+                rowNum++;
+            }
+
+            try (FileOutputStream fileOut = new FileOutputStream(excelName+".xlsx")) {
+                workbook.write(fileOut);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void validateData(String excelName){
+
+        try (FileInputStream fileInputStream = new FileInputStream(excelName+".xlsx");
+             HSSFWorkbook workbook = new HSSFWorkbook(fileInputStream)) {
+
+            HSSFSheet sheet = workbook.getSheet(excelName);
+
+            Row header = sheet.getRow(0);
+            if (header != null) {
+                Cell resultHeaderCell = header.createCell(3);
+                resultHeaderCell.setCellValue("Result");
+            }
+
+            int rowNum = 1;
+            while (true) {
+                Row row = sheet.getRow(rowNum);
+                if (row == null) {
+                    break;
+                }
+
+                Cell cell2 = row.getCell(1);
+                Cell cell3 = row.getCell(2);
+
+                if (cell2 == null || cell3 == null) {
+                    break;
+                }
+
+                String value2 = cell2.getStringCellValue().trim();
+                String value3 = cell3.getStringCellValue().trim();
+
+                Cell resultCell = row.createCell(3);
+
+                if (value2.equals(value3)) {
+                    resultCell.setCellValue("Match");
+                } else {
+                    resultCell.setCellValue("Mismatch");
+                }
+
+                rowNum++;
+            }
+
+            try (FileOutputStream fileOut = new FileOutputStream(excelName+".xlsx")) {
+                workbook.write(fileOut);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }
